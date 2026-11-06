@@ -111,12 +111,33 @@ function toast(text) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
 }
-async function api(path, body) {
-  const res = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || 'Error del servidor');
-  return data;
-}
+// Transporte: por defecto habla con el servidor Node. La versión publicada como
+// Artifact define window.__OFFICE_TRANSPORT__ con un motor que corre en el navegador.
+const httpTransport = {
+  async post(path, body) {
+    const res = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Error del servidor');
+    return data;
+  },
+  async state() {
+    return (await fetch('/api/state')).json();
+  },
+  connect(handler) {
+    const es = new EventSource('/api/events');
+    es.onmessage = (e) => handler(JSON.parse(e.data));
+    es.onerror = () => {
+      es.close();
+      setTimeout(async () => {
+        await loadState().catch(() => {});
+        httpTransport.connect(handler);
+      }, 2000);
+    };
+  },
+  canDownload: true,
+};
+const transport = window.__OFFICE_TRANSPORT__ || httpTransport;
+const api = (path, body) => transport.post(path, body);
 
 // ------------------------------------------------------------------ estadísticas
 function updateStats() {
@@ -163,9 +184,15 @@ function renderMessage(agent, m) {
   if (m.from === agent.id && !m.streaming && m.text && !m.error) {
     const tools = document.createElement('div');
     tools.className = 'tools';
-    tools.innerHTML = '<button class="ghost" data-act="copy">Copiar</button><button class="ghost" data-act="dl">Descargar .md</button>';
-    tools.querySelector('[data-act=copy]').onclick = () => navigator.clipboard.writeText(m.text).then(() => toast('Copiado ✓'));
-    tools.querySelector('[data-act=dl]').onclick = () => {
+    tools.innerHTML = '<button class="ghost" data-act="copy">Copiar</button>' + (transport.canDownload ? '<button class="ghost" data-act="dl">Descargar .md</button>' : '');
+    tools.querySelector('[data-act=copy]').onclick = () => {
+      try {
+        navigator.clipboard.writeText(m.text).then(() => toast('Copiado ✓'), () => selectText(div.querySelector('.body')));
+      } catch {
+        selectText(div.querySelector('.body'));
+      }
+    };
+    if (transport.canDownload) tools.querySelector('[data-act=dl]').onclick = () => {
       const a = document.createElement('a');
       a.href = URL.createObjectURL(new Blob([m.text], { type: 'text/markdown' }));
       a.download = `${agent.name}-${new Date(m.ts).toISOString().slice(0, 16).replace(/[:T]/g, '-')}.md`;
@@ -174,6 +201,14 @@ function renderMessage(agent, m) {
     div.appendChild(tools);
   }
   return div;
+}
+function selectText(node) {
+  const r = document.createRange();
+  r.selectNodeContents(node);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(r);
+  toast('Texto seleccionado: cópialo con el menú del sistema');
 }
 function renderPanel() {
   const a = state.agents.get(state.selected);
@@ -289,20 +324,8 @@ function scheduleRender(node, live) {
   });
 }
 
-function connect() {
-  const es = new EventSource('/api/events');
-  es.onmessage = (e) => onEvent(JSON.parse(e.data));
-  es.onerror = () => {
-    es.close();
-    setTimeout(async () => {
-      await loadState().catch(() => {});
-      connect();
-    }, 2000);
-  };
-}
-
 async function loadState() {
-  const data = await (await fetch('/api/state')).json();
+  const data = await transport.state();
   for (const a of data.agents) {
     state.agents.set(a.id, a);
     office?.setAgentState(a);
@@ -378,7 +401,7 @@ async function init() {
   });
   setTimeout(() => ($('hint').style.opacity = 0), 9000);
 
-  connect();
+  transport.connect(onEvent);
 }
 
 init().catch((err) => {

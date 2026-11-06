@@ -69,3 +69,11 @@ navegador (Three.js)  ⇄  server/index.js  ⇄  API de Claude
 - `public/app.js`: interfaz (chat, feed, barra de tareas) y conexión con el servidor.
 
 > Cada tarea consume tokens de tu cuenta de Anthropic. Una tarea de equipo hace una llamada para planificar, una por cada agente asignado y una para consolidar.
+
+## Versión para el teléfono (Artifact de Claude)
+
+La oficina también funciona como página publicada en claude.ai, sin servidor ni clave de API: los agentes usan la cuenta de Claude de quien la abre (la primera vez pide permiso).
+
+- Enlace: https://claude.ai/artifact/T24kXRZUH4Zv8cdhcNHDn9 (privado; compártelo desde el menú *Share* de la página).
+- Para regenerarla tras cambiar el código: `node scripts/build-artifact.mjs` crea `artifact/oficina-ia.html`, que se vuelve a publicar.
+- `artifact/engine.js` hace en el navegador lo mismo que `server/index.js`. Las conversaciones se guardan solo en ese navegador.
