@@ -205,3 +205,40 @@ button, input, select, textarea { font: inherit; color: inherit; }
   .command select { max-width: 110px; }
   .hint { display: none; }
 }
+
+/* ---------------------------------------------------------- teléfono */
+@media (max-width: 640px) {
+  .topbar { top: 10px; left: 10px; right: 10px; gap: 8px; }
+  .brand, .stats { padding: 7px 10px; gap: 8px; border-radius: 12px; }
+  .logo { font-size: 16px; }
+  .brand-name { font-size: 13.5px; white-space: nowrap; max-width: 44vw; overflow: hidden; text-overflow: ellipsis; }
+  .mode { font-size: 9px; padding: 2px 5px; }
+  .stat { min-width: 44px; }
+  .stat b { font-size: 14px; }
+  .stat span { font-size: 9.5px; }
+
+  .label { min-width: 0; padding: 4px 7px 5px; border-radius: 8px; border-width: 1.5px; }
+  .label .nm { font-size: 11.5px; }
+  .label .rl { display: none; }
+  .label .tk { font-size: 8.5px; padding: 1px 3px; }
+  .label .bar { margin-top: 4px; height: 3px; }
+  .label .badge { font-size: 7.5px; top: -9px; left: 6px; padding: 1px 4px; }
+  .label .row { gap: 5px; }
+  .label .dot { width: 7px; height: 7px; }
+  .label.far { transform: none; opacity: 1; }
+  .label:hover { transform: none; }
+  .team-sign { padding: 4px 8px 5px; border-bottom-width: 2px; }
+  .team-sign b { font-size: 10.5px; }
+  .team-sign span { font-size: 7.5px; }
+
+  .command { flex-wrap: wrap; bottom: 10px; padding: 7px; gap: 6px; width: calc(100% - 20px); border-radius: 14px; }
+  .command input { order: 1; flex: 1 1 100%; padding: 11px 12px; font-size: 16px; }
+  .command select { order: 2; flex: 1 1 0; min-width: 0; max-width: none; padding: 9px 10px; font-size: 14px; }
+  .command button { order: 3; padding: 0 18px; min-height: 40px; }
+
+  .panel { top: 40%; left: 0; right: 0; bottom: 0; width: auto; border-radius: 16px 16px 0 0; transform: translateY(105%); z-index: 5; }
+  .panel.open { transform: none; }
+  .p-input textarea { font-size: 16px; }
+  .msg { max-width: 100%; }
+  .toast { top: 64px; width: max-content; max-width: calc(100% - 32px); }
+}

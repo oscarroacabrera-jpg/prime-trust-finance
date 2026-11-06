@@ -518,7 +518,15 @@ export function createOffice(container, { teams, agents, onSelect }) {
 
   // ------------------------------------------------------------ cámara
   const center = new THREE.Vector3(0, 0, 0);
-  const defaultOffset = new THREE.Vector3(totalW * 0.55 + 10, totalW * 0.6 + 12, totalD * 0.9 + 16);
+  const baseOffset = new THREE.Vector3(totalW * 0.55 + 10, totalW * 0.6 + 12, totalD * 0.9 + 16);
+  const defaultOffset = baseOffset.clone();
+  const portrait = () => container.clientWidth / container.clientHeight < 0.9;
+  function fitOffset() {
+    // En pantallas verticales (teléfono) la cámara se aleja para que quepa toda la oficina.
+    const aspect = container.clientWidth / container.clientHeight;
+    defaultOffset.copy(baseOffset).multiplyScalar(aspect < 1.2 ? Math.min(2.4, 1.25 / aspect) : 1);
+  }
+  fitOffset();
   camera.position.copy(center).add(defaultOffset);
   controls.target.copy(center);
   let camTween = null;
@@ -614,7 +622,8 @@ export function createOffice(container, { teams, agents, onSelect }) {
       flyTo(center, defaultOffset);
       return;
     }
-    flyTo(act.home.clone().add(new THREE.Vector3(1.6, 1.2, 0)), new THREE.Vector3(5, 7, 12));
+    if (portrait()) flyTo(act.home.clone().add(new THREE.Vector3(0, 0.5, 2.5)), new THREE.Vector3(4, 9, 11));
+    else flyTo(act.home.clone().add(new THREE.Vector3(1.6, 1.2, 0)), new THREE.Vector3(5, 7, 12));
   }
 
   // ------------------------------------------------------------ bucle de animación
@@ -744,6 +753,7 @@ export function createOffice(container, { teams, agents, onSelect }) {
     camera.updateProjectionMatrix();
     renderer.setSize(w, h);
     labelRenderer.setSize(w, h);
+    fitOffset();
   }
   window.addEventListener('resize', resize);
 
