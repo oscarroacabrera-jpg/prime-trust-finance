@@ -1,0 +1,19 @@
+{
+  "name": "oficina-ia",
+  "version": "1.0.0",
+  "description": "Oficina interactiva 3D de agentes de IA: dales tareas, míralos trabajar e interactúa con ellos.",
+  "type": "module",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "demo": "DEMO_MODE=1 node server/index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.6.0",
+    "three": "^0.160.0",
+    "zod": "^4.6.7"
+  }
+}

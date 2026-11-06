@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Oficina IA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "/vendor/three/build/three.module.js",
+        "three/addons/": "/vendor/three/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="scene"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">◆</span>
+      <div>
+        <div class="brand-name" id="companyName">Oficina IA</div>
+        <div class="brand-sub">Empresa operada por agentes de IA</div>
+      </div>
+      <span class="mode" id="modeBadge">…</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><b id="statWorking">0</b><span>trabajando</span></div>
+      <div class="stat"><b id="statDone">0</b><span>entregas</span></div>
+      <div class="stat"><b id="statTokens">0</b><span>tokens</span></div>
+    </div>
+  </header>
+
+  <aside class="feed" id="feed">
+    <div class="feed-head">
+      <span>Actividad</span>
+      <button class="icon-btn" id="feedToggle" title="Ocultar">–</button>
+    </div>
+    <ul id="feedList"></ul>
+  </aside>
+
+  <aside class="panel" id="panel" aria-hidden="true">
+    <div class="panel-head">
+      <div class="avatar" id="pAvatar"></div>
+      <div class="p-title">
+        <div class="p-name" id="pName"></div>
+        <div class="p-role" id="pRole"></div>
+      </div>
+      <button class="icon-btn" id="pClose" title="Cerrar">✕</button>
+    </div>
+    <div class="p-status">
+      <span class="dot" id="pDot"></span><span id="pStatus"></span>
+      <span class="spacer"></span>
+      <span class="pill" id="pTokens"></span>
+    </div>
+    <div class="bar"><i id="pBar"></i></div>
+    <div class="p-actions">
+      <button class="ghost" id="pCancel">⏹ Detener</button>
+      <button class="ghost" id="pReset">🧹 Nueva conversación</button>
+    </div>
+    <div class="chat" id="chat"></div>
+    <form class="p-input" id="pForm">
+      <textarea id="pText" rows="2" placeholder="Escríbele o dale una tarea…"></textarea>
+      <button type="submit" class="primary">Enviar</button>
+    </form>
+  </aside>
+
+  <form class="command" id="cmdForm">
+    <select id="cmdTarget" title="¿A quién se la das?"></select>
+    <input id="cmdText" autocomplete="off" placeholder="Dale una tarea al equipo… ej. «Lanza una campaña para nuestro nuevo crédito para emprendedores»" />
+    <button type="submit" class="primary">Asignar ▶</button>
+  </form>
+
+  <div class="hint" id="hint">Arrastra para girar · rueda para zoom · clic en un agente para hablar con él</div>
+  <div id="labels"></div>
+  <div class="toast" id="toast"></div>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
