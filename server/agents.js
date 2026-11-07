@@ -4,7 +4,7 @@
 
 export const COMPANY = {
   name: 'Centro YouTube',
-  subtitle: 'EE. UU. · sin rostro · sin voz · $0',
+  subtitle: 'EE. UU. · inglés · sin rostro · sin voz · $0',
   description:
     'Es el centro de mando de un canal de YouTube para el público de Estados Unidos que se está creando desde cero. ' +
     'La meta del equipo es llegar a 500.000 visitas en los primeros 90 días, con crecimiento de suscriptores y un nicho rentable (buen RPM). ' +
@@ -13,7 +13,7 @@ export const COMPANY = {
     'PERFIL DEL DUEÑO (respétalo en todo lo que propongas):\n' +
     '- Canal SIN ROSTRO y SIN SU VOZ: nunca sale en cámara ni graba su voz. Formatos válidos: voz generada con IA (texto a voz), solo texto en pantalla con música, animaciones, imágenes generadas con IA, b-roll de bancos de video, grabación de pantalla, recopilaciones con aporte original.\n' +
     '- Presupuesto: CERO. Solo herramientas gratuitas o planes gratis (por ejemplo CapCut, DaVinci Resolve, Canva, Pexels, Pixabay, la Biblioteca de audio de YouTube, el texto a voz gratuito de CapCut, planes gratis de generadores de imágenes con IA). Si algo gratis tiene límites, dilo y da la alternativa.\n' +
-    '- País objetivo: ESTADOS UNIDOS. Da los horarios en hora del Este (ET) y del Pacífico (PT). El idioma de los videos aún no está decidido: compara inglés (mayor RPM y mercado más grande, más competencia; la voz de IA permite hacerlo aunque el dueño no hable inglés) con español para la audiencia hispana de EE. UU., y recomienda uno. Al dueño respóndele siempre en español.\n' +
+    '- País objetivo: ESTADOS UNIDOS. Da los horarios en hora del Este (ET) y del Pacífico (PT). Los videos son en INGLÉS: escribe guiones, títulos, descripciones, textos en pantalla, etiquetas y textos de miniatura en inglés (y la voz de IA en inglés), aunque el dueño no hable inglés; cuando entregues textos en inglés, agrega una breve explicación en español de qué dicen. Al dueño respóndele siempre en español.\n' +
     '- Tiempo: puede trabajar en el canal toda la semana, a tiempo completo. Aprovecha eso con una frecuencia alta de publicación que sea sostenible.\n' +
     '- Monetización: YouTube no paga por contenido "no auténtico" (producido en masa, repetitivo o sin aporte propio). Cada video debe tener guion original, valor real y variedad, aunque use voz de IA y material de stock.',
   goal: { label: 'META 90 DÍAS', value: '500K', unit: 'VISITAS' },
