@@ -17,7 +17,7 @@ const STATUS_COLORS = {
   error: 0xf87171,
 };
 
-export function createOffice(container, { teams, agents, onSelect }) {
+export function createOffice(container, { teams, agents, onSelect, company }) {
   // ------------------------------------------------------------ renderer
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -172,7 +172,14 @@ export function createOffice(container, { teams, agents, onSelect }) {
     const members = byTeam.get(t.id) || [];
     const cols = Math.max(1, Math.min(3, members.length));
     const rows = Math.max(1, Math.ceil(members.length / cols));
-    return { team: t, members, cols, rows, w: cols * DESK_DX + 2.2, d: rows * DESK_DZ + 1.6 };
+    return {
+      team: t,
+      members,
+      cols,
+      rows,
+      w: Math.max(cols * DESK_DX + 2.6, t.boss ? 9 : 0),
+      d: Math.max(rows * DESK_DZ + 2.4, t.boss ? 7.6 : 0),
+    };
   });
   // posiciones de las zonas en una cuadrícula según team.zone = [col, fila]
   const colW = {};
@@ -393,6 +400,154 @@ export function createOffice(container, { teams, agents, onSelect }) {
     return ring;
   }
 
+
+  // ------------------------------------------------------------ oficinas con paredes
+  const WALL_H = 2.3;
+  function wallMat(team) {
+    return mat(new THREE.Color(team.floor).lerp(new THREE.Color(0xffffff), 0.55), { roughness: 0.85 });
+  }
+  function solidWall(len, alongX, x, z, m) {
+    const w = new THREE.Mesh(new THREE.BoxGeometry(alongX ? len : 0.14, WALL_H, alongX ? 0.14 : len), m);
+    w.position.set(x, WALL_H / 2, z);
+    w.castShadow = w.receiveShadow = true;
+    scene.add(w);
+    const cap = new THREE.Mesh(new THREE.BoxGeometry(alongX ? len + 0.02 : 0.2, 0.06, alongX ? 0.2 : len + 0.02), M.rail);
+    cap.position.set(x, WALL_H + 0.03, z);
+    scene.add(cap);
+  }
+  function glassWall(len, alongX, x, z) {
+    if (len <= 0.05) return;
+    const g = new THREE.Mesh(new THREE.BoxGeometry(alongX ? len : 0.05, WALL_H, alongX ? 0.05 : len), M.glass);
+    g.position.set(x, WALL_H / 2, z);
+    scene.add(g);
+    const rail = new THREE.Mesh(new THREE.BoxGeometry(alongX ? len : 0.1, 0.07, alongX ? 0.1 : len), M.metal);
+    rail.position.set(x, WALL_H, z);
+    scene.add(rail);
+    const base = rail.clone();
+    base.position.y = 0.05;
+    scene.add(base);
+    for (const e of [-1, 1]) {
+      const post = new THREE.Mesh(new THREE.BoxGeometry(0.1, WALL_H, 0.1), M.metal);
+      post.position.set(alongX ? x + (e * len) / 2 : x, WALL_H / 2, alongX ? z : z + (e * len) / 2);
+      scene.add(post);
+    }
+  }
+  function buildRoom(z) {
+    const x0 = z.cx - z.w / 2;
+    const x1 = z.cx + z.w / 2;
+    const z0 = z.cz - z.d / 2;
+    const z1 = z.cz + z.d / 2;
+    const wm = wallMat(z.team);
+    solidWall(z.w, true, z.cx, z0, wm); // fondo
+    solidWall(z.d, false, x0, z.cz, wm); // izquierda
+    glassWall(z.d, false, x1, z.cz); // derecha (vidrio, para ver adentro)
+    const door = 1.7;
+    const seg = (z.w - door) / 2;
+    glassWall(seg, true, x0 + seg / 2, z1); // frente con puerta en el centro
+    glassWall(seg, true, x1 - seg / 2, z1);
+    const lintel = new THREE.Mesh(new THREE.BoxGeometry(door + 0.2, 0.25, 0.14), M.metal);
+    lintel.position.set(z.cx, WALL_H - 0.12, z1);
+    scene.add(lintel);
+    const mat_ = new THREE.Mesh(new THREE.BoxGeometry(door, 0.02, 0.8), mat(0x3f3f46));
+    mat_.position.set(z.cx, 0.07, z1 + 0.5);
+    scene.add(mat_);
+  }
+
+  function textTexture(lines, w = 512, h = 256) {
+    const c = document.createElement('canvas');
+    c.width = w;
+    c.height = h;
+    const g = c.getContext('2d');
+    g.fillStyle = '#0f0f17';
+    g.fillRect(0, 0, w, h);
+    g.textAlign = 'center';
+    for (const l of lines) {
+      g.fillStyle = l.color;
+      g.font = l.font;
+      g.fillText(l.text, w / 2, l.y);
+    }
+    const t = new THREE.CanvasTexture(c);
+    t.colorSpace = THREE.SRGBColorSpace;
+    return t;
+  }
+
+  function bossFurniture(z) {
+    const z0 = z.cz - z.d / 2;
+    // pantalla con la meta en la pared del fondo
+    const goal = company?.goal || { label: 'META', value: '', unit: '' };
+    const tv = new THREE.Mesh(
+      new THREE.BoxGeometry(3.2, 1.6, 0.08),
+      [M.monitor, M.monitor, M.monitor, M.monitor, new THREE.MeshBasicMaterial({ map: textTexture([
+        { text: goal.label, font: '700 34px Inter, sans-serif', color: '#facc15', y: 62 },
+        { text: goal.value, font: '900 120px Inter, sans-serif', color: '#ffffff', y: 180 },
+        { text: goal.unit, font: '700 30px Inter, sans-serif', color: '#a1a1aa', y: 230 },
+      ]) }), M.monitor],
+    );
+    tv.position.set(z.cx, 1.75, z0 + 0.12);
+    scene.add(tv);
+    // estantería en la pared izquierda
+    const shelf = new THREE.Group();
+    const frame = new THREE.Mesh(new THREE.BoxGeometry(0.45, 2, 2.2), M.deskEdge);
+    frame.position.y = 1;
+    frame.castShadow = true;
+    shelf.add(frame);
+    const bookColors = [0xef4444, 0x3b82f6, 0xfacc15, 0x10b981, 0x8b5cf6, 0xf97316];
+    for (let r = 0; r < 4; r++) {
+      for (let i = 0; i < 7; i++) {
+        const b = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.32 + Math.random() * 0.08, 0.16), mat(bookColors[(r * 7 + i) % bookColors.length]));
+        b.position.set(0.1, 0.32 + r * 0.46, -0.9 + i * 0.28);
+        shelf.add(b);
+      }
+    }
+    shelf.position.set(z.cx - z.w / 2 + 0.35, 0, z.cz - 0.6);
+    scene.add(shelf);
+    // sillones frente al escritorio
+    for (const sx of [-1, 1]) {
+      const arm = new THREE.Group();
+      const seat = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.4, 0.8), mat(0x1f2937));
+      seat.position.y = 0.3;
+      const back = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.6, 0.18), mat(0x111827));
+      back.position.set(0, 0.7, 0.35);
+      seat.castShadow = back.castShadow = true;
+      arm.add(seat, back);
+      arm.position.set(z.cx + sx * 0.8, 0, z.cz + 1.9);
+      scene.add(arm);
+    }
+    // trofeo (botón de reproducción) sobre la estantería
+    const plaque = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.5, 0.7), mat(0xd4d4d8, { metalness: 0.8, roughness: 0.25 }));
+    plaque.position.set(z.cx - z.w / 2 + 0.4, 2.3, z.cz - 0.6);
+    scene.add(plaque);
+    const tri = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.02, 3), mat(0xef4444));
+    tri.rotation.set(0, 0, Math.PI / 2);
+    tri.position.set(z.cx - z.w / 2 + 0.44, 2.3, z.cz - 0.6);
+    scene.add(tri);
+  }
+
+  function studioCorner(z) {
+    // luz de anillo y cámara en un trípode para la oficina de producción
+    const g = new THREE.Group();
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.35, 0.05, 10, 32), new THREE.MeshBasicMaterial({ color: 0xfff7d6 }));
+    ring.position.y = 1.7;
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 1.6, 8), M.metal);
+    pole.position.y = 0.8;
+    const cam = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.18, 0.18), M.monitor);
+    cam.position.set(0, 1.7, 0.05);
+    const lens = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.12, 12), M.glasses);
+    lens.rotation.x = Math.PI / 2;
+    lens.position.set(0, 1.7, 0.18);
+    g.add(ring, pole, cam, lens);
+    for (let i = 0; i < 3; i++) {
+      const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.5, 6), M.metal);
+      const a = (i / 3) * Math.PI * 2;
+      leg.position.set(Math.cos(a) * 0.15, 0.2, Math.sin(a) * 0.15);
+      leg.rotation.set(Math.sin(a) * 0.5, 0, -Math.cos(a) * 0.5);
+      g.add(leg);
+    }
+    g.position.set(z.cx + z.w / 2 - 0.7, 0, z.cz + z.d / 2 - 0.8);
+    g.rotation.y = -Math.PI * 0.75;
+    scene.add(g);
+  }
+
   // ------------------------------------------------------------ construir zonas
   const actors = new Map();
   const pickables = [];
@@ -406,18 +561,21 @@ export function createOffice(container, { teams, agents, onSelect }) {
     const border = new THREE.Mesh(new THREE.BoxGeometry(z.w + 0.3, 0.04, z.d + 0.3), mat(0xf5f3ff));
     border.position.set(z.cx, 0.02, z.cz);
     scene.add(border);
+    buildRoom(z);
+    if (z.team.boss) bossFurniture(z);
+    if (z.team.id === 'produccion') studioCorner(z);
 
     // cartel del equipo
     const sign = document.createElement('div');
     sign.className = 'team-sign';
     sign.innerHTML = `<b>${z.team.name}</b><span>${z.team.tag} · ${z.members.length} AGENTE${z.members.length === 1 ? '' : 'S'}</span>`;
     const signObj = new CSS2DObject(sign);
-    signObj.position.set(z.cx - z.w / 2 + 1.6, 3.9, z.cz - z.d / 2);
+    signObj.position.set(z.cx, 0.2, z.cz + z.d / 2 + 0.9); // cartel en el pasillo, frente a la puerta
     scene.add(signObj);
 
     // plantas grandes en esquinas
     const bp = bigPlant();
-    bp.position.set(z.cx + z.w / 2 - 0.5, 0, z.cz - z.d / 2 + 0.5);
+    bp.position.set(z.cx + z.w / 2 - 0.6, 0, z.cz - z.d / 2 + 0.6);
     scene.add(bp);
 
     z.members.forEach((agent, i) => {
@@ -524,9 +682,16 @@ export function createOffice(container, { teams, agents, onSelect }) {
   function fitOffset() {
     // En pantallas verticales (teléfono) la cámara se aleja para que quepa toda la oficina.
     const aspect = container.clientWidth / container.clientHeight;
-    defaultOffset.copy(baseOffset).multiplyScalar(aspect < 1.2 ? Math.min(2.4, 1.25 / aspect) : 1);
+    defaultOffset.copy(baseOffset).multiplyScalar(aspect < 1.2 ? Math.min(1.75, 0.85 / aspect) : 1);
+  }
+  function fitFog() {
+    const d = defaultOffset.length();
+    controls.maxDistance = Math.max(70, d * 1.4);
+    scene.fog.near = Math.max(55, d * 1.1);
+    scene.fog.far = Math.max(110, d * 2.2);
   }
   fitOffset();
+  fitFog();
   camera.position.copy(center).add(defaultOffset);
   controls.target.copy(center);
   let camTween = null;
@@ -684,7 +849,7 @@ export function createOffice(container, { teams, agents, onSelect }) {
       act.ring.scale.setScalar(on ? 1 + Math.sin(ph * 5) * 0.06 : 1);
       // etiquetas lejanas más pequeñas
       const dist = camera.position.distanceTo(tmp.copy(act.home));
-      act.el.classList.toggle('far', dist > 42);
+      act.el.classList.toggle('far', dist > 42 && !portrait());
     }
 
     for (let i = flights.length - 1; i >= 0; i--) {
@@ -754,6 +919,7 @@ export function createOffice(container, { teams, agents, onSelect }) {
     renderer.setSize(w, h);
     labelRenderer.setSize(w, h);
     fitOffset();
+    fitFog();
   }
   window.addEventListener('resize', resize);
 

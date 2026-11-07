@@ -24,7 +24,7 @@
       <span class="logo">◆</span>
       <div>
         <div class="brand-name" id="companyName">Oficina IA</div>
-        <div class="brand-sub">Empresa operada por agentes de IA</div>
+        <div class="brand-sub" id="companySub">Empresa operada por agentes de IA</div>
       </div>
       <span class="mode" id="modeBadge">…</span>
     </div>
@@ -70,8 +70,9 @@
   </aside>
 
   <form class="command" id="cmdForm">
+    <div class="chips" id="chips" hidden></div>
     <select id="cmdTarget" title="¿A quién se la das?"></select>
-    <input id="cmdText" autocomplete="off" placeholder="Dale una tarea al equipo… ej. «Lanza una campaña para nuestro nuevo crédito para emprendedores»" />
+    <input id="cmdText" autocomplete="off" placeholder="Dale una tarea al equipo… o elige una de arriba" />
     <button type="submit" class="primary">Asignar ▶</button>
   </form>
 

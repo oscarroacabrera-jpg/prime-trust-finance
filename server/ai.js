@@ -122,15 +122,16 @@ ${roster}`,
 // ---------------------------------------------------------------------------
 
 const KEYWORDS = {
-  clara: ['precio', 'presupuesto', 'costo', 'finanz', 'roi', 'ingreso', 'proyecci', 'inversi'],
-  lucia: ['investig', 'mercado', 'competen', 'cliente', 'tendenc', 'regula'],
-  diego: ['dato', 'kpi', 'métric', 'metric', 'dashboard', 'analí', 'anali'],
-  mateo: ['marca', 'brand', 'logo', 'nombre', 'eslogan', 'identidad'],
-  sofi: ['texto', 'copy', 'email', 'anuncio', 'landing', 'guion', 'post'],
-  valen: ['redes', 'instagram', 'tiktok', 'reel', 'contenido', 'campaña', 'viral'],
-  tomi: ['web', 'página', 'pagina', 'código', 'codigo', 'app', 'sitio', 'tienda'],
-  nico: ['automat', 'whatsapp', 'crm', 'zapier', 'integra', 'flujo'],
-  ana: ['soporte', 'faq', 'legal', 'término', 'politica', 'política', 'cliente'],
+  lucia: ['tendencia', 'tema', 'idea', 'viral', 'contenido'],
+  diego: ['rentable', 'nicho', 'rpm', 'monetiz', 'dinero', 'ingreso'],
+  valen: ['público', 'publico', 'audiencia', 'espectador'],
+  ana: ['hora', 'horario', 'calendario', 'día', 'cuándo', 'cuando'],
+  sofi: ['guion', 'guión', 'video', 'gancho'],
+  tomi: ['edición', 'edicion', 'editar', 'grabar', 'video'],
+  mateo: ['miniatura', 'título', 'titulo', 'thumbnail'],
+  nico: ['short', 'clip', 'tiktok', 'vertical'],
+  clara: ['canal', 'crear', 'cero', 'nombre', 'banner', 'comunidad'],
+  pablo: ['seo', 'visitas', 'crecimiento', 'métrica', 'metrica', 'plan', '500'],
 };
 
 async function demoPlan(goal) {

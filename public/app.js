@@ -337,13 +337,30 @@ async function loadState() {
 async function init() {
   const data = await loadState();
   $('companyName').textContent = data.company.name;
+  if (data.company.subtitle) $('companySub').textContent = data.company.subtitle;
+  const chips = $('chips');
+  for (const q of data.company.quickTasks || []) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chip';
+    b.textContent = q.label;
+    b.title = q.text;
+    b.onclick = () => {
+      $('cmdText').value = q.text;
+      $('cmdTarget').value = 'team';
+      $('cmdText').focus();
+      toast('Revisa la tarea y toca Asignar');
+    };
+    chips.appendChild(b);
+  }
+  chips.hidden = !chips.children.length;
   document.title = `Oficina IA · ${data.company.name}`;
   const badge = $('modeBadge');
   badge.textContent = data.demo ? 'DEMO' : 'EN VIVO';
   badge.className = 'mode ' + (data.demo ? 'demo' : 'live');
   badge.title = data.demo ? 'Respuestas simuladas. Define ANTHROPIC_API_KEY y reinicia para usar Claude.' : `Modelo: ${data.model}`;
 
-  office = createOffice($('scene'), { teams: data.teams, agents: data.agents, onSelect: select });
+  office = createOffice($('scene'), { teams: data.teams, agents: data.agents, onSelect: select, company: data.company });
   for (const a of data.agents) office.setAgentState(a);
   updateStats();
   for (const e of data.activity) addFeed(e);

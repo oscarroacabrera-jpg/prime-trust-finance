@@ -134,6 +134,14 @@ button, input, select, textarea { font: inherit; color: inherit; }
   background: var(--card); border: 1px solid var(--line); border-radius: 16px; backdrop-filter: blur(10px);
   box-shadow: 0 16px 40px rgba(20, 10, 60, 0.3);
 }
+.command { flex-wrap: wrap; }
+.chips { flex: 1 1 100%; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.chips::-webkit-scrollbar { display: none; }
+.chip {
+  flex: none; background: rgba(250, 204, 21, 0.12); border: 1px solid rgba(250, 204, 21, 0.35); color: #fde68a;
+  border-radius: 999px; padding: 6px 11px; font-size: 12.5px; font-weight: 600; cursor: pointer; white-space: nowrap;
+}
+.chip:hover, .chip:focus-visible { background: rgba(250, 204, 21, 0.25); outline: none; }
 .command select, .command input {
   background: rgba(255, 255, 255, 0.06); border: 1px solid var(--line); border-radius: 10px; padding: 11px 12px; outline: none;
 }
@@ -147,11 +155,11 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .ghost { background: rgba(255, 255, 255, 0.06); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; cursor: pointer; font-size: 12.5px; }
 .ghost:hover { background: rgba(255, 255, 255, 0.12); }
 
-.hint { position: fixed; bottom: 86px; left: 50%; transform: translateX(-50%); font-size: 12px; color: #4c4570; background: rgba(255,255,255,0.6); padding: 4px 10px; border-radius: 20px; pointer-events: none; transition: opacity 1s; white-space: nowrap; }
+.hint { position: fixed; bottom: 128px; left: 50%; transform: translateX(-50%); font-size: 12px; color: #4c4570; background: rgba(255,255,255,0.6); padding: 4px 10px; border-radius: 20px; pointer-events: none; transition: opacity 1s; white-space: nowrap; }
 
 /* ---------------------------------------------------------- panel del agente */
 .panel {
-  position: fixed; top: 86px; right: 16px; bottom: 90px; width: 420px;
+  position: fixed; top: 86px; right: 16px; bottom: 136px; width: 420px;
   display: flex; flex-direction: column;
   background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); backdrop-filter: blur(10px);
   transform: translateX(calc(100% + 24px)); transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -206,7 +214,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   .feed { display: none; }
   .stats .stat:nth-child(3) { display: none; }
   .brand-sub { display: none; }
-  .panel { left: 16px; right: 16px; width: auto; top: 76px; bottom: 84px; }
+  .panel { left: 16px; right: 16px; width: auto; top: 76px; bottom: 130px; }
   .command select { max-width: 110px; }
   .hint { display: none; }
 }
@@ -234,7 +242,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
   .label:hover { transform: none; }
   .team-sign { padding: 4px 8px 5px; border-bottom-width: 2px; }
   .team-sign b { font-size: 10.5px; }
-  .team-sign span { font-size: 7.5px; }
+  .team-sign span { display: none; }
+  .team-sign b { font-size: 9.5px; }
 
   .command { flex-wrap: wrap; bottom: 10px; padding: 7px; gap: 6px; width: calc(100% - 20px); border-radius: 14px; }
   .command input { order: 1; flex: 1 1 100%; padding: 11px 12px; font-size: 16px; }
@@ -262,7 +271,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
       <span class="logo">◆</span>
       <div>
         <div class="brand-name" id="companyName">Oficina IA</div>
-        <div class="brand-sub">Empresa operada por agentes de IA</div>
+        <div class="brand-sub" id="companySub">Empresa operada por agentes de IA</div>
       </div>
       <span class="mode" id="modeBadge">…</span>
     </div>
@@ -308,8 +317,9 @@ button, input, select, textarea { font: inherit; color: inherit; }
   </aside>
 
   <form class="command" id="cmdForm">
+    <div class="chips" id="chips" hidden></div>
     <select id="cmdTarget" title="¿A quién se la das?"></select>
-    <input id="cmdText" autocomplete="off" placeholder="Dale una tarea al equipo… ej. «Lanza una campaña para nuestro nuevo crédito para emprendedores»" />
+    <input id="cmdText" autocomplete="off" placeholder="Dale una tarea al equipo… o elige una de arriba" />
     <button type="submit" class="primary">Asignar ▶</button>
   </form>
 
@@ -317,114 +327,136 @@ button, input, select, textarea { font: inherit; color: inherit; }
   <div id="labels"></div>
   <div class="toast" id="toast"></div>
 <script>
-// Configuración del equipo de la oficina.
-// Edita este archivo para cambiar nombres, roles, equipos o la personalidad de cada agente.
-// `zone` es la posición del equipo en la oficina (columna, fila) y cada agente ocupa un escritorio.
+// Configuración del centro de mando del canal de YouTube.
+// Edita este archivo para cambiar nombres, roles, departamentos o la personalidad de cada agente.
+// `zone` es la posición de cada oficina en el edificio (columna, fila).
 
 const COMPANY = {
-  name: 'Prime Trust Finance',
+  name: 'Centro YouTube',
+  subtitle: 'Canal operado por agentes de IA',
   description:
-    'Prime Trust Finance es una empresa de servicios financieros (asesoría, inversión, créditos y educación financiera) que opera con un equipo de agentes de IA.',
+    'Es el centro de mando de un canal de YouTube en español que se está creando desde cero. ' +
+    'La meta del equipo es llegar a 500.000 visitas en los primeros 90 días, con crecimiento de suscriptores y un nicho rentable (buen RPM). ' +
+    'Ningún agente tiene acceso a internet, a YouTube ni a datos en tiempo real: las recomendaciones salen de su conocimiento, y cuando un dato debe comprobarse (búsquedas, competencia, horarios de la audiencia, RPM) dicen exactamente cómo verificarlo con herramientas reales como YouTube Studio, Google Trends, vidIQ o TubeBuddy. ' +
+    'Las acciones en YouTube (crear la cuenta, subir videos) las hace el dueño del canal siguiendo los pasos que el equipo le entrega.',
+  goal: { label: 'META 90 DÍAS', value: '500K', unit: 'VISITAS' },
+  quickTasks: [
+    { label: '🚀 Crear el canal desde cero', text: 'Crea el canal desde cero: elige el nicho más rentable, nombre, descripción, branding y la lista de pasos exactos para abrirlo hoy en YouTube.' },
+    { label: '📈 Plan 90 días → 500K', text: 'Arma el plan completo de 90 días para llegar a 500.000 visitas: nicho, tipo de videos, frecuencia, calendario semanal, metas por mes y cómo medir el avance.' },
+    { label: '💰 Contenidos más rentables', text: 'Encuentra los 10 temas de video más rentables para empezar (alto RPM y alta demanda), con título, gancho y por qué funcionaría cada uno.' },
+    { label: '⏰ Público y hora exacta', text: 'Define el público objetivo del canal y la hora y día exactos para publicar cada tipo de contenido (videos largos y Shorts), con zona horaria y cómo validarlo en YouTube Studio.' },
+    { label: '🎬 Primer video completo', text: 'Produce el primer video: guion completo con gancho de 5 segundos, plan de edición escena por escena, 3 ideas de miniatura y título optimizado.' },
+  ],
 };
 
 const TEAMS = [
-  { id: 'direccion', name: 'DIRECCIÓN', tag: 'ESTRATEGIA', zone: [0, 0], floor: '#8b7cf6' },
-  { id: 'research', name: 'INVESTIGACIÓN', tag: 'DATOS', zone: [1, 0], floor: '#6c8cf5' },
-  { id: 'brand', name: 'BRAND', tag: 'MARCA 24/7', zone: [0, 1], floor: '#a78bfa' },
-  { id: 'dev', name: 'EQUIPO DESARROLLO', tag: 'BUILD', zone: [1, 1], floor: '#7aa2f7' },
+  { id: 'jefe', name: 'OFICINA DEL JEFE', tag: 'DIRECCIÓN', zone: [0, 0], floor: '#c4b5fd', boss: true },
+  { id: 'contenido', name: 'CONTENIDO RENTABLE', tag: 'TENDENCIAS · RPM', zone: [1, 0], floor: '#93c5fd' },
+  { id: 'audiencia', name: 'AUDIENCIA Y HORARIOS', tag: 'PÚBLICO · HORA EXACTA', zone: [2, 0], floor: '#86efac' },
+  { id: 'produccion', name: 'PRODUCCIÓN', tag: 'GUION · VIDEO · EDICIÓN', zone: [0, 1], floor: '#fca5a5' },
+  { id: 'canal', name: 'GESTIÓN DEL CANAL', tag: 'CREACIÓN · SEO · CRECIMIENTO', zone: [1, 1], floor: '#a5b4fc' },
 ];
 
 const AGENTS = [
   {
     id: 'bruno',
     name: 'Bruno',
-    role: 'Director',
-    team: 'direccion',
-    color: '#f472b6',
+    role: 'Jefe del canal',
+    team: 'jefe',
+    color: '#facc15',
     isDirector: true,
     persona:
-      'Eres Bruno, director de operaciones. Divides objetivos grandes en tareas concretas, eliges al agente adecuado para cada una y consolidas los resultados en un entregable final claro y accionable.',
-  },
-  {
-    id: 'clara',
-    name: 'Clara',
-    role: 'Finanzas / CFO',
-    team: 'direccion',
-    color: '#34d399',
-    persona:
-      'Eres Clara, responsable financiera. Haces presupuestos, proyecciones, análisis de costos, precios y métricas (CAC, LTV, margen, ROI). Muestras números en tablas y explicas tus supuestos.',
+      'Eres Bruno, jefe y director del canal de YouTube. Tu obsesión es la meta: 500.000 visitas en 90 días. Divides cada objetivo en tareas para tus departamentos (Contenido rentable, Audiencia y horarios, Producción y Gestión del canal), eliges a los agentes adecuados y consolidas sus resultados en decisiones claras, con fechas, responsables y números a medir. Eres realista: si algo no es alcanzable, lo dices y propones cómo acercarse.',
   },
   {
     id: 'lucia',
     name: 'Lucía',
-    role: 'Investigación',
-    team: 'research',
+    role: 'Tendencias y temas',
+    team: 'contenido',
     color: '#60a5fa',
     persona:
-      'Eres Lucía, investigadora de mercado. Analizas competencia, clientes ideales, tendencias y regulación del sector financiero. Entregas hallazgos estructurados con conclusiones y fuentes sugeridas para verificar.',
+      'Eres Lucía, analista de tendencias de YouTube. Detectas temas con alta demanda y poca competencia, formatos que se están volviendo virales y huecos que los canales grandes no cubren. Entregas listas priorizadas de ideas de video con el porqué de cada una y las búsquedas concretas para validarlas en Google Trends y en la barra de búsqueda de YouTube.',
   },
   {
     id: 'diego',
     name: 'Diego',
-    role: 'Analista de Datos',
-    team: 'research',
-    color: '#facc15',
+    role: 'Nichos y monetización',
+    team: 'contenido',
+    color: '#38bdf8',
     persona:
-      'Eres Diego, analista de datos. Defines KPIs, diseñas dashboards, propones experimentos A/B y sacas conclusiones de datos. Eres preciso y propones cómo medir todo.',
-  },
-  {
-    id: 'mateo',
-    name: 'Mateo',
-    role: 'Branding',
-    team: 'brand',
-    color: '#a78bfa',
-    persona:
-      'Eres Mateo, estratega de marca. Defines posicionamiento, propuesta de valor, tono de voz, nombres, eslóganes e identidad visual (paletas, tipografías, conceptos de logo).',
-  },
-  {
-    id: 'sofi',
-    name: 'Sofi',
-    role: 'Copywriter',
-    team: 'brand',
-    color: '#fb7185',
-    persona:
-      'Eres Sofi, copywriter. Escribes textos persuasivos: anuncios, emails, landing pages, guiones de video y posts. Siempre das varias variantes y un llamado a la acción claro.',
+      'Eres Diego, experto en monetización de YouTube. Comparas nichos por RPM/CPM estimado en español, facilidad de producción, potencial de patrocinios y afiliados. Conoces los requisitos del Programa de Partners (1.000 suscriptores y 4.000 horas de reproducción o 10 millones de vistas de Shorts en 90 días) y planeas cómo alcanzarlos. Usas tablas comparativas y aclaras que los RPM son rangos aproximados.',
   },
   {
     id: 'valen',
     name: 'Valen',
-    role: 'Creativos / Redes',
-    team: 'brand',
-    color: '#f472b6',
-    persona:
-      'Eres Valen, director creativo de redes sociales. Creas calendarios de contenido, ideas de reels/TikToks, prompts para imágenes y conceptos de campañas virales.',
-  },
-  {
-    id: 'tomi',
-    name: 'Tomi',
-    role: 'Dev Web',
-    team: 'dev',
-    color: '#22d3ee',
-    persona:
-      'Eres Tomi, desarrollador web full-stack. Escribes código limpio (HTML, CSS, JavaScript, Node, Python), arquitecturas y planes técnicos. Entregas código listo para copiar con instrucciones breves.',
-  },
-  {
-    id: 'nico',
-    name: 'Nico',
-    role: 'Automatizaciones',
-    team: 'dev',
+    role: 'Analista de audiencia',
+    team: 'audiencia',
     color: '#4ade80',
     persona:
-      'Eres Nico, experto en automatizaciones e integraciones (Zapier, Make, n8n, APIs, CRMs, WhatsApp, email). Diseñas flujos paso a paso que ahorran trabajo manual.',
+      'Eres Valen, analista de audiencia. Defines el público ideal del canal (edad, país, intereses, problemas, qué ve y cuándo), creas perfiles de espectador y explicas qué contenido los hace suscribirse. Indicas qué mirar en YouTube Studio (pestaña Audiencia) para confirmar o corregir el perfil.',
   },
   {
     id: 'ana',
     name: 'Ana',
-    role: 'Soporte / Legal',
-    team: 'dev',
-    color: '#f97316',
+    role: 'Horarios y calendario',
+    team: 'audiencia',
+    color: '#22c55e',
     persona:
-      'Eres Ana, responsable de atención al cliente y cumplimiento. Redactas FAQs, guiones de soporte, políticas, términos y avisos de riesgo. Señalas cuándo algo requiere revisión de un abogado real.',
+      'Eres Ana, estratega de publicación. Defines el día y la hora exacta para publicar cada formato (videos largos, Shorts, directos, comunidad), siempre indicando la zona horaria y los países objetivo, y armas calendarios semanales. Explicas que la hora inicial es una hipótesis y cómo ajustarla con el gráfico "Cuándo están conectados tus espectadores" de YouTube Studio tras las primeras semanas.',
+  },
+  {
+    id: 'sofi',
+    name: 'Sofi',
+    role: 'Guionista',
+    team: 'produccion',
+    color: '#fb7185',
+    persona:
+      'Eres Sofi, guionista de YouTube. Escribes guiones con gancho fuerte en los primeros 5 segundos, ritmo alto, bucles de curiosidad para mantener la retención y llamados a suscribirse naturales. Entregas guiones listos para grabar o para voz en off, con duración estimada.',
+  },
+  {
+    id: 'tomi',
+    name: 'Tomi',
+    role: 'Video y edición',
+    team: 'produccion',
+    color: '#f87171',
+    persona:
+      'Eres Tomi, productor y editor de video. Conviertes guiones en planes de producción y edición escena por escena: tomas, b-roll, textos en pantalla, música, efectos, cortes cada pocos segundos y versión vertical para Shorts. Recomiendas herramientas concretas (CapCut, DaVinci Resolve, Premiere, IA para voz o imágenes) según el presupuesto y explicas el flujo de trabajo paso a paso.',
+  },
+  {
+    id: 'mateo',
+    name: 'Mateo',
+    role: 'Miniaturas y títulos',
+    team: 'produccion',
+    color: '#f472b6',
+    persona:
+      'Eres Mateo, especialista en miniaturas y títulos con alto CTR. Propones 3 conceptos de miniatura por video (composición, texto de máximo 4 palabras, colores, expresión), escribes prompts para generarlas con IA y varias opciones de título para pruebas A/B ("Probar y comparar" de YouTube).',
+  },
+  {
+    id: 'nico',
+    name: 'Nico',
+    role: 'Shorts y clips',
+    team: 'produccion',
+    color: '#fb923c',
+    persona:
+      'Eres Nico, especialista en YouTube Shorts. Conviertes cada video largo en varios Shorts de 15-50 segundos con gancho inmediato, subtítulos y final en bucle, y diseñas series de Shorts para atraer suscriptores rápido y llevar tráfico a los videos largos.',
+  },
+  {
+    id: 'clara',
+    name: 'Clara',
+    role: 'Creación y gestión',
+    team: 'canal',
+    color: '#a78bfa',
+    persona:
+      'Eres Clara, channel manager. Creas el canal desde cero: nombre y @handle, descripción, banner, foto de perfil, tráiler, secciones, listas de reproducción, enlaces y configuración (país, palabras clave, valores predeterminados de subida). Entregas los pasos exactos para hacerlo en YouTube y YouTube Studio, y después gestionas la comunidad: respuestas a comentarios, publicaciones y colaboraciones.',
+  },
+  {
+    id: 'pablo',
+    name: 'Pablo',
+    role: 'SEO y crecimiento',
+    team: 'canal',
+    color: '#818cf8',
+    persona:
+      'Eres Pablo, especialista en SEO de YouTube y analítica. Optimizas títulos, descripciones, etiquetas, capítulos y hashtags; defines las métricas clave (CTR, retención media, vistas por fuente de tráfico, suscriptores por video) con metas semanales hacia 500.000 visitas en 90 días, y explicas qué hacer si un número se queda corto.',
   },
 ];
 
@@ -676,7 +708,7 @@ Responde siempre en español. Entrega trabajo terminado y útil, no planes vagos
     const roster = workers.map((a) => `- ${a.id}: ${a.name}, ${a.role}. ${a.persona}`).join('\n');
     const result = await withSlot(() =>
       sample.json(
-        `Eres Bruno, director de operaciones de ${COMPANY.name}. ${COMPANY.description}
+        `${systemPrompt(AGENTS.find((a) => a.isDirector))}
 
 Divide el objetivo del usuario en tareas y asígnalas SOLO a los agentes necesarios (de 1 a 4). Cada tarea debe poder hacerse por separado y en paralelo, y ser una instrucción concreta y autosuficiente.
 
@@ -829,7 +861,7 @@ const STATUS_COLORS = {
   error: 0xf87171,
 };
 
-function createOffice(container, { teams, agents, onSelect }) {
+function createOffice(container, { teams, agents, onSelect, company }) {
   // ------------------------------------------------------------ renderer
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -984,7 +1016,14 @@ function createOffice(container, { teams, agents, onSelect }) {
     const members = byTeam.get(t.id) || [];
     const cols = Math.max(1, Math.min(3, members.length));
     const rows = Math.max(1, Math.ceil(members.length / cols));
-    return { team: t, members, cols, rows, w: cols * DESK_DX + 2.2, d: rows * DESK_DZ + 1.6 };
+    return {
+      team: t,
+      members,
+      cols,
+      rows,
+      w: Math.max(cols * DESK_DX + 2.6, t.boss ? 9 : 0),
+      d: Math.max(rows * DESK_DZ + 2.4, t.boss ? 7.6 : 0),
+    };
   });
   // posiciones de las zonas en una cuadrícula según team.zone = [col, fila]
   const colW = {};
@@ -1205,6 +1244,154 @@ function createOffice(container, { teams, agents, onSelect }) {
     return ring;
   }
 
+
+  // ------------------------------------------------------------ oficinas con paredes
+  const WALL_H = 2.3;
+  function wallMat(team) {
+    return mat(new THREE.Color(team.floor).lerp(new THREE.Color(0xffffff), 0.55), { roughness: 0.85 });
+  }
+  function solidWall(len, alongX, x, z, m) {
+    const w = new THREE.Mesh(new THREE.BoxGeometry(alongX ? len : 0.14, WALL_H, alongX ? 0.14 : len), m);
+    w.position.set(x, WALL_H / 2, z);
+    w.castShadow = w.receiveShadow = true;
+    scene.add(w);
+    const cap = new THREE.Mesh(new THREE.BoxGeometry(alongX ? len + 0.02 : 0.2, 0.06, alongX ? 0.2 : len + 0.02), M.rail);
+    cap.position.set(x, WALL_H + 0.03, z);
+    scene.add(cap);
+  }
+  function glassWall(len, alongX, x, z) {
+    if (len <= 0.05) return;
+    const g = new THREE.Mesh(new THREE.BoxGeometry(alongX ? len : 0.05, WALL_H, alongX ? 0.05 : len), M.glass);
+    g.position.set(x, WALL_H / 2, z);
+    scene.add(g);
+    const rail = new THREE.Mesh(new THREE.BoxGeometry(alongX ? len : 0.1, 0.07, alongX ? 0.1 : len), M.metal);
+    rail.position.set(x, WALL_H, z);
+    scene.add(rail);
+    const base = rail.clone();
+    base.position.y = 0.05;
+    scene.add(base);
+    for (const e of [-1, 1]) {
+      const post = new THREE.Mesh(new THREE.BoxGeometry(0.1, WALL_H, 0.1), M.metal);
+      post.position.set(alongX ? x + (e * len) / 2 : x, WALL_H / 2, alongX ? z : z + (e * len) / 2);
+      scene.add(post);
+    }
+  }
+  function buildRoom(z) {
+    const x0 = z.cx - z.w / 2;
+    const x1 = z.cx + z.w / 2;
+    const z0 = z.cz - z.d / 2;
+    const z1 = z.cz + z.d / 2;
+    const wm = wallMat(z.team);
+    solidWall(z.w, true, z.cx, z0, wm); // fondo
+    solidWall(z.d, false, x0, z.cz, wm); // izquierda
+    glassWall(z.d, false, x1, z.cz); // derecha (vidrio, para ver adentro)
+    const door = 1.7;
+    const seg = (z.w - door) / 2;
+    glassWall(seg, true, x0 + seg / 2, z1); // frente con puerta en el centro
+    glassWall(seg, true, x1 - seg / 2, z1);
+    const lintel = new THREE.Mesh(new THREE.BoxGeometry(door + 0.2, 0.25, 0.14), M.metal);
+    lintel.position.set(z.cx, WALL_H - 0.12, z1);
+    scene.add(lintel);
+    const mat_ = new THREE.Mesh(new THREE.BoxGeometry(door, 0.02, 0.8), mat(0x3f3f46));
+    mat_.position.set(z.cx, 0.07, z1 + 0.5);
+    scene.add(mat_);
+  }
+
+  function textTexture(lines, w = 512, h = 256) {
+    const c = document.createElement('canvas');
+    c.width = w;
+    c.height = h;
+    const g = c.getContext('2d');
+    g.fillStyle = '#0f0f17';
+    g.fillRect(0, 0, w, h);
+    g.textAlign = 'center';
+    for (const l of lines) {
+      g.fillStyle = l.color;
+      g.font = l.font;
+      g.fillText(l.text, w / 2, l.y);
+    }
+    const t = new THREE.CanvasTexture(c);
+    t.colorSpace = THREE.SRGBColorSpace;
+    return t;
+  }
+
+  function bossFurniture(z) {
+    const z0 = z.cz - z.d / 2;
+    // pantalla con la meta en la pared del fondo
+    const goal = company?.goal || { label: 'META', value: '', unit: '' };
+    const tv = new THREE.Mesh(
+      new THREE.BoxGeometry(3.2, 1.6, 0.08),
+      [M.monitor, M.monitor, M.monitor, M.monitor, new THREE.MeshBasicMaterial({ map: textTexture([
+        { text: goal.label, font: '700 34px Inter, sans-serif', color: '#facc15', y: 62 },
+        { text: goal.value, font: '900 120px Inter, sans-serif', color: '#ffffff', y: 180 },
+        { text: goal.unit, font: '700 30px Inter, sans-serif', color: '#a1a1aa', y: 230 },
+      ]) }), M.monitor],
+    );
+    tv.position.set(z.cx, 1.75, z0 + 0.12);
+    scene.add(tv);
+    // estantería en la pared izquierda
+    const shelf = new THREE.Group();
+    const frame = new THREE.Mesh(new THREE.BoxGeometry(0.45, 2, 2.2), M.deskEdge);
+    frame.position.y = 1;
+    frame.castShadow = true;
+    shelf.add(frame);
+    const bookColors = [0xef4444, 0x3b82f6, 0xfacc15, 0x10b981, 0x8b5cf6, 0xf97316];
+    for (let r = 0; r < 4; r++) {
+      for (let i = 0; i < 7; i++) {
+        const b = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.32 + Math.random() * 0.08, 0.16), mat(bookColors[(r * 7 + i) % bookColors.length]));
+        b.position.set(0.1, 0.32 + r * 0.46, -0.9 + i * 0.28);
+        shelf.add(b);
+      }
+    }
+    shelf.position.set(z.cx - z.w / 2 + 0.35, 0, z.cz - 0.6);
+    scene.add(shelf);
+    // sillones frente al escritorio
+    for (const sx of [-1, 1]) {
+      const arm = new THREE.Group();
+      const seat = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.4, 0.8), mat(0x1f2937));
+      seat.position.y = 0.3;
+      const back = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.6, 0.18), mat(0x111827));
+      back.position.set(0, 0.7, 0.35);
+      seat.castShadow = back.castShadow = true;
+      arm.add(seat, back);
+      arm.position.set(z.cx + sx * 0.8, 0, z.cz + 1.9);
+      scene.add(arm);
+    }
+    // trofeo (botón de reproducción) sobre la estantería
+    const plaque = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.5, 0.7), mat(0xd4d4d8, { metalness: 0.8, roughness: 0.25 }));
+    plaque.position.set(z.cx - z.w / 2 + 0.4, 2.3, z.cz - 0.6);
+    scene.add(plaque);
+    const tri = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.02, 3), mat(0xef4444));
+    tri.rotation.set(0, 0, Math.PI / 2);
+    tri.position.set(z.cx - z.w / 2 + 0.44, 2.3, z.cz - 0.6);
+    scene.add(tri);
+  }
+
+  function studioCorner(z) {
+    // luz de anillo y cámara en un trípode para la oficina de producción
+    const g = new THREE.Group();
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.35, 0.05, 10, 32), new THREE.MeshBasicMaterial({ color: 0xfff7d6 }));
+    ring.position.y = 1.7;
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 1.6, 8), M.metal);
+    pole.position.y = 0.8;
+    const cam = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.18, 0.18), M.monitor);
+    cam.position.set(0, 1.7, 0.05);
+    const lens = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.12, 12), M.glasses);
+    lens.rotation.x = Math.PI / 2;
+    lens.position.set(0, 1.7, 0.18);
+    g.add(ring, pole, cam, lens);
+    for (let i = 0; i < 3; i++) {
+      const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.5, 6), M.metal);
+      const a = (i / 3) * Math.PI * 2;
+      leg.position.set(Math.cos(a) * 0.15, 0.2, Math.sin(a) * 0.15);
+      leg.rotation.set(Math.sin(a) * 0.5, 0, -Math.cos(a) * 0.5);
+      g.add(leg);
+    }
+    g.position.set(z.cx + z.w / 2 - 0.7, 0, z.cz + z.d / 2 - 0.8);
+    g.rotation.y = -Math.PI * 0.75;
+    scene.add(g);
+  }
+
   // ------------------------------------------------------------ construir zonas
   const actors = new Map();
   const pickables = [];
@@ -1218,18 +1405,21 @@ function createOffice(container, { teams, agents, onSelect }) {
     const border = new THREE.Mesh(new THREE.BoxGeometry(z.w + 0.3, 0.04, z.d + 0.3), mat(0xf5f3ff));
     border.position.set(z.cx, 0.02, z.cz);
     scene.add(border);
+    buildRoom(z);
+    if (z.team.boss) bossFurniture(z);
+    if (z.team.id === 'produccion') studioCorner(z);
 
     // cartel del equipo
     const sign = document.createElement('div');
     sign.className = 'team-sign';
     sign.innerHTML = `<b>${z.team.name}</b><span>${z.team.tag} · ${z.members.length} AGENTE${z.members.length === 1 ? '' : 'S'}</span>`;
     const signObj = new CSS2DObject(sign);
-    signObj.position.set(z.cx - z.w / 2 + 1.6, 3.9, z.cz - z.d / 2);
+    signObj.position.set(z.cx, 0.2, z.cz + z.d / 2 + 0.9); // cartel en el pasillo, frente a la puerta
     scene.add(signObj);
 
     // plantas grandes en esquinas
     const bp = bigPlant();
-    bp.position.set(z.cx + z.w / 2 - 0.5, 0, z.cz - z.d / 2 + 0.5);
+    bp.position.set(z.cx + z.w / 2 - 0.6, 0, z.cz - z.d / 2 + 0.6);
     scene.add(bp);
 
     z.members.forEach((agent, i) => {
@@ -1336,9 +1526,16 @@ function createOffice(container, { teams, agents, onSelect }) {
   function fitOffset() {
     // En pantallas verticales (teléfono) la cámara se aleja para que quepa toda la oficina.
     const aspect = container.clientWidth / container.clientHeight;
-    defaultOffset.copy(baseOffset).multiplyScalar(aspect < 1.2 ? Math.min(2.4, 1.25 / aspect) : 1);
+    defaultOffset.copy(baseOffset).multiplyScalar(aspect < 1.2 ? Math.min(1.75, 0.85 / aspect) : 1);
+  }
+  function fitFog() {
+    const d = defaultOffset.length();
+    controls.maxDistance = Math.max(70, d * 1.4);
+    scene.fog.near = Math.max(55, d * 1.1);
+    scene.fog.far = Math.max(110, d * 2.2);
   }
   fitOffset();
+  fitFog();
   camera.position.copy(center).add(defaultOffset);
   controls.target.copy(center);
   let camTween = null;
@@ -1496,7 +1693,7 @@ function createOffice(container, { teams, agents, onSelect }) {
       act.ring.scale.setScalar(on ? 1 + Math.sin(ph * 5) * 0.06 : 1);
       // etiquetas lejanas más pequeñas
       const dist = camera.position.distanceTo(tmp.copy(act.home));
-      act.el.classList.toggle('far', dist > 42);
+      act.el.classList.toggle('far', dist > 42 && !portrait());
     }
 
     for (let i = flights.length - 1; i >= 0; i--) {
@@ -1566,6 +1763,7 @@ function createOffice(container, { teams, agents, onSelect }) {
     renderer.setSize(w, h);
     labelRenderer.setSize(w, h);
     fitOffset();
+    fitFog();
   }
   window.addEventListener('resize', resize);
 
@@ -1916,13 +2114,30 @@ async function loadState() {
 async function init() {
   const data = await loadState();
   $('companyName').textContent = data.company.name;
+  if (data.company.subtitle) $('companySub').textContent = data.company.subtitle;
+  const chips = $('chips');
+  for (const q of data.company.quickTasks || []) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chip';
+    b.textContent = q.label;
+    b.title = q.text;
+    b.onclick = () => {
+      $('cmdText').value = q.text;
+      $('cmdTarget').value = 'team';
+      $('cmdText').focus();
+      toast('Revisa la tarea y toca Asignar');
+    };
+    chips.appendChild(b);
+  }
+  chips.hidden = !chips.children.length;
   document.title = `Oficina IA · ${data.company.name}`;
   const badge = $('modeBadge');
   badge.textContent = data.demo ? 'DEMO' : 'EN VIVO';
   badge.className = 'mode ' + (data.demo ? 'demo' : 'live');
   badge.title = data.demo ? 'Respuestas simuladas. Define ANTHROPIC_API_KEY y reinicia para usar Claude.' : `Modelo: ${data.model}`;
 
-  office = createOffice($('scene'), { teams: data.teams, agents: data.agents, onSelect: select });
+  office = createOffice($('scene'), { teams: data.teams, agents: data.agents, onSelect: select, company: data.company });
   for (const a of data.agents) office.setAgentState(a);
   updateStats();
   for (const e of data.activity) addFeed(e);

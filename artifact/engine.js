@@ -246,7 +246,7 @@ Responde siempre en español. Entrega trabajo terminado y útil, no planes vagos
     const roster = workers.map((a) => `- ${a.id}: ${a.name}, ${a.role}. ${a.persona}`).join('\n');
     const result = await withSlot(() =>
       sample.json(
-        `Eres Bruno, director de operaciones de ${COMPANY.name}. ${COMPANY.description}
+        `${systemPrompt(AGENTS.find((a) => a.isDirector))}
 
 Divide el objetivo del usuario en tareas y asígnalas SOLO a los agentes necesarios (de 1 a 4). Cada tarea debe poder hacerse por separado y en paralelo, y ser una instrucción concreta y autosuficiente.
 

@@ -14,14 +14,21 @@ Una oficina 3D interactiva donde cada escritorio es un **agente de IA** (con Cla
 - Feed de **actividad** con todo lo que pasa en la oficina.
 - Mover la cámara: arrastra para girar, rueda para zoom, `Esc` para volver a la vista general.
 
-## Equipo por defecto
+## Departamentos (canal de YouTube)
 
-| Equipo | Agentes |
+La oficina es el centro de mando de un canal de YouTube que se crea desde cero, con la meta de 500.000 visitas en 90 días. Cada departamento tiene su propia oficina con paredes, y el jefe tiene su despacho con la meta en pantalla.
+
+| Oficina | Agentes |
 |---|---|
-| Dirección | Bruno (Director), Clara (Finanzas / CFO) |
-| Investigación | Lucía (Investigación), Diego (Analista de Datos) |
-| Brand | Mateo (Branding), Sofi (Copywriter), Valen (Creativos / Redes) |
-| Equipo Desarrollo | Tomi (Dev Web), Nico (Automatizaciones), Ana (Soporte / Legal) |
+| Oficina del jefe | Bruno (Jefe del canal: reparte el trabajo y consolida) |
+| Contenido rentable | Lucía (Tendencias y temas), Diego (Nichos y monetización) |
+| Audiencia y horarios | Valen (Analista de audiencia), Ana (Horarios y calendario) |
+| Producción | Sofi (Guionista), Tomi (Video y edición), Mateo (Miniaturas y títulos), Nico (Shorts y clips) |
+| Gestión del canal | Clara (Creación y gestión), Pablo (SEO y crecimiento) |
+
+Los botones rápidos sobre la barra de tareas lanzan los encargos más comunes: crear el canal desde cero, plan de 90 días, contenidos más rentables, público y hora exacta, y el primer video completo.
+
+Los agentes no tienen acceso a internet ni a YouTube: entregan planes, guiones, títulos, horarios y pasos exactos, y dicen qué verificar con YouTube Studio, Google Trends o vidIQ. Crear la cuenta y subir los videos lo haces tú siguiendo sus pasos.
 
 Para cambiar nombres, roles, personalidades, colores o equipos edita **`server/agents.js`**. La oficina se redibuja sola con los escritorios que hagan falta.
 
